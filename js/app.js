@@ -1,11 +1,18 @@
 // Enemies our player must avoid
-var Enemy = function() {
+var ENEMY_INIT_POSITION_Y = 62;
+var STEP_Y = 84;
+var STEP_X = 100;
+var ENEMY_DEFAULT_SPEED = 200;
+var Enemy = function(y,s) {
     // Variables applied to each of our instances go here,
     // we've provided one for you to get started
 
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
+    this.x = 1;
+    this.y = y;
+    this.speed = s;
 }
 
 // Update the enemy's position, required method for game
@@ -14,6 +21,12 @@ Enemy.prototype.update = function(dt) {
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
     // all computers.
+    if(this.x>505){
+        this.x = 1;
+    }else{
+        this.x += this.speed*dt;                       ;
+    }
+    //console.log("dt"+dt);
 }
 
 // Draw the enemy on the screen, required method for game
@@ -25,10 +38,81 @@ Enemy.prototype.render = function() {
 // This class requires an update(), render() and
 // a handleInput() method.
 
+var Player = function(){
+    this.x = 200;
+    this.y = 325;
+    this.sprite = 'images/char-boy.png';
+};
+
+Player.prototype.move = function(directionKey){
+
+    switch(directionKey) {
+        case 'up':
+            if(this.y<50){
+                return false;
+            }
+            this.y-=STEP_Y;
+            break;
+        case 'right':
+            if(this.x>390){
+                return false;
+            }
+            this.x+=STEP_X;
+            break;
+        case 'left':
+            if(this.x<30){
+                return false;
+            }
+            this.x-=STEP_X;
+            break;
+        case 'down':
+            if(this.y>400){
+                return false;
+            }
+            this.y +=STEP_Y;
+            break;
+    }
+};
+
+Player.prototype.update = function(dt){
+
+};
+
+Player.prototype.reset = function(){
+    this.x = 200;
+    this.y = 320;
+};
+
+// Draw the player on the screen, required method for game
+Player.prototype.render = function() {
+    ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+};
+
+// handles direction arrows and guide player movements
+Player.prototype.handleInput = function(directionKey) {
+    //ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
+    if(!directionKey){
+       return false;
+    }
+    //alert(directionKey);
+
+    this.move(directionKey);
+
+};
 
 // Now instantiate your objects.
 // Place all enemy objects in an array called allEnemies
 // Place the player object in a variable called player
+
+var player = new Player();
+var allEnemies = [
+        new Enemy(ENEMY_INIT_POSITION_Y,ENEMY_DEFAULT_SPEED),
+        new Enemy(ENEMY_INIT_POSITION_Y+STEP_Y,ENEMY_DEFAULT_SPEED*1.5),
+        new Enemy(ENEMY_INIT_POSITION_Y+STEP_Y*2,ENEMY_DEFAULT_SPEED*2-50)
+    ];
+
+//player.render();
+//enemy.render();
 
 
 
