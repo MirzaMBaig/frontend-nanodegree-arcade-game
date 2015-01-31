@@ -1,124 +1,343 @@
-// Enemies our player must avoid
+/**
+ * initial position of enemy
+ * @const {number}
+ */
 var ENEMY_INIT_POSITION_Y = 62;
-var STEP_Y = 84;
-var STEP_X = 100;
+/**
+ * distance of one step on y axis
+ * @const {number}
+ */
+var STEP_Y = 83;
+/**
+ * distance of one step on x axis
+ * @const {number}
+ */
+var STEP_X = 101;
+/**
+ * initial default speed of enemy
+ * @const {number}
+ */
 var ENEMY_DEFAULT_SPEED = 200;
-var Enemy = function(y,s) {
+/**
+ * success point
+ * @const {number}
+ */
+var REACHED_SUCCESS_POINT = STEP_Y;
+
+/**
+ * Max number of rounds
+ * @const {number}
+ */
+var MAX_ROUNDS = 5;
+
+/**
+ * count the
+ * @type {number}
+ */
+var roundCount = 0;
+
+/**
+ * when game start this will set to true & on collision/completion this will set to false
+ * @type {boolean}
+ */
+var startGame = false;
+
+/**
+ * game level
+ * @type {number}
+ */
+var gameLevel = gameLevel || Number(1);
+
+/**
+ * when game start this will set to true & on collision this will set to false
+ * @type {boolean}
+ */
+var collisionDecteced = false;
+
+
+/**
+ * Enemy {object} the player must avoid
+ * @param position_y initial position
+ * @param speed initial speed
+ * @constructor
+ */
+var Enemy = function (position_y, speed) {
     // Variables applied to each of our instances go here,
     // we've provided one for you to get started
 
     // The image/sprite for our enemies, this uses
     // a helper we've provided to easily load images
     this.sprite = 'images/enemy-bug.png';
+
+    //init position of enemy
     this.x = 1;
-    this.y = y;
-    this.speed = s;
+    this.y = position_y;
+    //default speed of enemy
+    this.speed = speed;
 }
+
+//generates random number for speed
+var randomSpeed = function () {
+    return (((Math.ceil(Math.random() * 2)) * (Number(gameLevel))) / 2) * ENEMY_DEFAULT_SPEED;
+};
 
 // Update the enemy's position, required method for game
 // Parameter: dt, a time delta between ticks
-Enemy.prototype.update = function(dt) {
+
+Enemy.prototype.update = function (dt) {
     // You should multiply any movement by the dt parameter
     // which will ensure the game runs at the same speed for
     // all computers.
-    if(this.x>505){
-        this.x = 1;
-    }else{
-        this.x += this.speed*dt;                       ;
+    if (this.speed <= 1) {
+        this.speed = 10;
     }
-    //console.log("dt"+dt);
+    if (this.x > 505) {
+        this.x = 1;
+        this.speed = dt * randomSpeed();
+    } else {
+        this.x += this.speed;
+    }
 }
 
 // Draw the enemy on the screen, required method for game
-Enemy.prototype.render = function() {
+Enemy.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 }
 
-// Now write your own player class
-// This class requires an update(), render() and
-// a handleInput() method.
+/**
+ * resets enemy while start of game/round
+ */
+Enemy.prototype.reset = function () {
+    this.x = 1;
+};
 
-var Player = function(){
-    this.x = 200;
-    this.y = 325;
+/**
+ * player initial position on x axis
+ * @returns {number}
+ */
+var positionX = function () {
+    return 200;
+};
+
+/**
+ * player initial position on y axis
+ * @returns {number}
+ */
+var positionY = function () {
+    return 325;
+};
+
+var Player = function () {
+    this.x = positionX();
+    this.y = positionY();
     this.sprite = 'images/char-boy.png';
 };
 
-Player.prototype.move = function(directionKey){
 
-    switch(directionKey) {
+/**
+ * move the player as per key directions
+ * @param directionKey
+ */
+Player.prototype.move = function (directionKey) {
+
+    switch (directionKey) {
         case 'up':
-            if(this.y<50){
-                return false;
+            if (this.y < STEP_Y) {
+                //this.y -= STEP_Y;
+                //this.render();
+                //success, hurry you crossed the road
+                success();
+                //return false;
+            } else {
+                this.y -= STEP_Y;
             }
-            this.y-=STEP_Y;
             break;
         case 'right':
-            if(this.x>390){
+            if (this.x > 390) {
                 return false;
             }
-            this.x+=STEP_X;
+            this.x += STEP_X;
             break;
         case 'left':
-            if(this.x<30){
+            if (this.x < 30) {
                 return false;
             }
-            this.x-=STEP_X;
+            this.x -= STEP_X;
             break;
         case 'down':
-            if(this.y>400){
+            if (this.y > 400) {
                 return false;
             }
-            this.y +=STEP_Y;
+            this.y += STEP_Y;
             break;
     }
 };
 
-Player.prototype.update = function(dt){
-
+Player.prototype.update = function (dt) {
 };
 
-Player.prototype.reset = function(){
-    this.x = 200;
-    this.y = 320;
+Player.prototype.reset = function () {
+    this.x = positionX();
+    this.y = positionY();
 };
 
 // Draw the player on the screen, required method for game
-Player.prototype.render = function() {
+Player.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
 };
 
 // handles direction arrows and guide player movements
-Player.prototype.handleInput = function(directionKey) {
-    //ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-    if(!directionKey){
-       return false;
+Player.prototype.handleInput = function (directionKey) {
+    if (!directionKey || !startGame) {
+        return false;
     }
-    //alert(directionKey);
-
     this.move(directionKey);
-
 };
 
-// Now instantiate your objects.
-// Place all enemy objects in an array called allEnemies
-// Place the player object in a variable called player
-
+/**
+ * instantiating player object.
+ * @type {Player}
+ */
 var player = new Player();
-var allEnemies = [
-        new Enemy(ENEMY_INIT_POSITION_Y,ENEMY_DEFAULT_SPEED),
-        new Enemy(ENEMY_INIT_POSITION_Y+STEP_Y,ENEMY_DEFAULT_SPEED*1.5),
-        new Enemy(ENEMY_INIT_POSITION_Y+STEP_Y*2,ENEMY_DEFAULT_SPEED*2-50)
-    ];
 
-//player.render();
-//enemy.render();
+// factory object to create enemies
+var EnemyFactory = function () {
+    this.createEnemies = function (howMany) {
+        var enemies = [];
+        for (var i = 0; i < howMany; ++i) {
+            enemies.push(new Enemy(ENEMY_INIT_POSITION_Y + (STEP_Y * i), randomSpeed()));
+        }
+        return enemies;
+    }
+};
 
+//Place all enemy objects in an array called allEnemies
+var allEnemies = new EnemyFactory().createEnemies(3);
 
+/**
+ * start new game
+ */
+function startNewGame() {
+    roundCount = 0;
+    $('img').remove();
+    startRound();
+    Engine.init();
+}
+/**
+ * start new round
+ */
+function startRound() {
+    startGame = true;
+    player.reset();
+    allEnemies.forEach(function (enemy) {
+        enemy.reset();
+    });
+}
+
+/**
+ * @param success
+ * collision detected OR game is successfully completed
+ */
+function endRound(success) {
+    greyOutScreen('collided');
+    setTimeout(function () {
+        startRound();
+    }, 2000);
+    startGame = success || false;
+}
+
+/**
+ * on completion(collision OR success) grey out the screen
+ */
+function greyOutScreen(outcome) {
+    var imgData = ctx.getImageData(0, 0, 505, 606);
+    var l = imgData.data.length;
+    for (var i = 0; i < l; i += 4) {
+        var avg = (imgData.data[i] * 0.34) + (imgData.data[i + 1] * 0.5 ) + (imgData.data[i + 2] * 0.16);
+        imgData.data[i] = avg;
+        imgData.data[i + 1] = avg;
+        imgData.data[i + 2] = avg;
+        //imgData.data[i+3]=255;
+
+    }
+    ctx.putImageData(imgData, 0, 0);
+
+    ctx.font = '36pt Impact';
+    ctx.fillStyle = 'Red';
+    ctx.strokeStyle = 'black';
+    ctx.lineWidth = 3;
+    var fillTxt = '';
+    var strokeTxt = '';
+    if (outcome === 'gameover') {
+        ctx.font = '40pt Impact';
+        ctx.fillStyle = 'Green';
+        fillTxt = 'You Won';
+        strokeTxt = 'You Won';
+        ctx.fillText(fillTxt, 150, 195);
+        ctx.strokeText(strokeTxt, 150, 195);
+    } else if (outcome === 'collided') {
+        ctx.fillStyle = 'Red';
+        fillTxt = 'Oops...Run again';
+        strokeTxt = 'Oops...Run again';
+        ctx.fillText(fillTxt, 100, 95);
+        ctx.strokeText(strokeTxt, 100, 95);
+    } else if (outcome === 'roundover') {
+        ctx.fillStyle = 'Green';
+        fillTxt = 'Hurry...Play again';
+        strokeTxt = 'Hurry...Play again';
+        ctx.fillText(fillTxt, 100, 95);
+        ctx.strokeText(strokeTxt, 100, 95);
+    }
+}
+
+/**
+ *
+ * @param player_x - player x axis
+ * @param player_y - player y axis
+ * @param tile_x - tile x axis
+ * @param tile_y - tile y axis
+ */
+function checkCollisions(player_x, player_y, tile_x, tile_y) {
+    var h = STEP_Y / 2;//height
+    var w = STEP_X - 10;//width
+    if (player_x < tile_x + w &&
+        player_x + w > tile_x &&
+        player_y < tile_y + h &&
+        h + player_y > tile_y) {
+        endRound();
+    }
+}
+
+/**
+ * add a gem on success
+ */
+function addGem() {
+    $('#gems').append('<img src="images/Gem Orange.png" alt="One Gen added"/>');
+}
+
+/**
+ * successful completion of round
+ */
+function success() {
+    addGem();
+    if (++roundCount >= MAX_ROUNDS) {
+        greyOutScreen('gameover');
+        setTimeout(function () {
+            startNewGame();
+        }, 2000);
+
+    } else {
+        greyOutScreen('roundover');
+        setTimeout(function () {
+            startRound();
+        }, 1000);
+    }
+    startGame = false;
+}
 
 // This listens for key presses and sends the keys to your
 // Player.handleInput() method. You don't need to modify this.
-document.addEventListener('keyup', function(e) {
+document.addEventListener('keyup', function (e) {
     var allowedKeys = {
         37: 'left',
         38: 'up',
