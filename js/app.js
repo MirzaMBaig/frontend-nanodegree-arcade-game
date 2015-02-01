@@ -18,11 +18,6 @@ var STEP_X = 101;
  * @const {number}
  */
 var ENEMY_DEFAULT_SPEED = 200;
-/**
- * success point
- * @const {number}
- */
-var REACHED_SUCCESS_POINT = STEP_Y;
 
 /**
  * Max number of rounds
@@ -37,7 +32,7 @@ var MAX_ROUNDS = 5;
 var roundCount = 0;
 
 /**
- * when game start this will set to true & on collision/completion this will set to false
+ * when game start this will set to true & on collision/completion it will set to false
  * @type {boolean}
  */
 var startGame = false;
@@ -46,14 +41,7 @@ var startGame = false;
  * game level
  * @type {number}
  */
-var gameLevel = gameLevel || Number(1);
-
-/**
- * when game start this will set to true & on collision this will set to false
- * @type {boolean}
- */
-var collisionDecteced = false;
-
+var gameLevel = gameLevel || Number(2);
 
 /**
  * Enemy {object} the player must avoid
@@ -74,7 +62,7 @@ var Enemy = function (position_y, speed) {
     this.y = position_y;
     //default speed of enemy
     this.speed = speed;
-}
+};
 
 //generates random number for speed
 var randomSpeed = function () {
@@ -97,12 +85,12 @@ Enemy.prototype.update = function (dt) {
     } else {
         this.x += this.speed;
     }
-}
+};
 
 // Draw the enemy on the screen, required method for game
 Enemy.prototype.render = function () {
     ctx.drawImage(Resources.get(this.sprite), this.x, this.y);
-}
+};
 
 /**
  * resets enemy while start of game/round
@@ -143,11 +131,10 @@ Player.prototype.move = function (directionKey) {
     switch (directionKey) {
         case 'up':
             if (this.y < STEP_Y) {
-                //this.y -= STEP_Y;
-                //this.render();
-                //success, hurry you crossed the road
-                success();
-                //return false;
+                this.y = 0;
+                setTimeout(function () {
+                    success();
+                }, 100);
             } else {
                 this.y -= STEP_Y;
             }
@@ -320,6 +307,7 @@ function addGem() {
  */
 function success() {
     addGem();
+    startGame = false;
     if (++roundCount >= MAX_ROUNDS) {
         greyOutScreen('gameover');
         setTimeout(function () {
@@ -332,7 +320,7 @@ function success() {
             startRound();
         }, 1000);
     }
-    startGame = false;
+
 }
 
 // This listens for key presses and sends the keys to your
